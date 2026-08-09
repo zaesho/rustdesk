@@ -137,6 +137,23 @@ jobs:
           sed -i -e "s/MACOSX_DEPLOYMENT_TARGET = [0-9]*.[0-9]*;/MACOSX_DEPLOYMENT_TARGET = ${MIN_MACOS_VERSION};/" flutter/macos/Runner.xcodeproj/project.pbxproj
           ./build.py --flutter --hwcodec --unix-file-copy-paste ${{ matrix.job.extra-build-args }}
 
+      - name: Ad-hoc re-sign for local execution
+        run: |
+          APP=./flutter/build/macos/Build/Products/Release/RustDesk.app
+          ENT=/tmp/rustdesk-ent.plist
+          cp flutter/macos/Runner/Release.entitlements "$ENT"
+          # An ad-hoc signature has no team ID, so library validation rejects every
+          # bundled framework unless it is disabled.
+          /usr/libexec/PlistBuddy -c 'Add :com.apple.security.cs.disable-library-validation bool true' "$ENT"
+          for fw in "$APP"/Contents/Frameworks/*.framework; do
+            codesign --force --options runtime --timestamp=none --sign - "$fw"
+          done
+          codesign --force --options runtime --timestamp=none --sign - "$APP"/Contents/Frameworks/*.dylib
+          # build.py adds this helper after Xcode has sealed the bundle.
+          codesign --force --options runtime --timestamp=none --entitlements "$ENT" --sign - "$APP/Contents/MacOS/service"
+          codesign --force --options runtime --timestamp=none --entitlements "$ENT" --sign - "$APP"
+          codesign --verify --deep --strict --verbose=2 "$APP"
+
       - name: Create unsigned dmg
         run: |
           CREATE_DMG="$(command -v create-dmg)"
