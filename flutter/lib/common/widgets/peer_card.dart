@@ -681,6 +681,30 @@ abstract class BasePeerCard extends StatelessWidget {
     );
   }
 
+  @protected
+  void _addWolActions(List<MenuEntryBase<String>> menuItems, String id) {
+    if (isWeb) return;
+    if (bind.mainGetPeerOptionSync(id: id, key: kOptionWolMac).isNotEmpty) {
+      menuItems.add(_wolAction(id));
+    }
+    menuItems.add(_wolSettingsAction(id));
+  }
+
+  @protected
+  MenuEntryBase<String> _wolSettingsAction(String id) {
+    return MenuEntryButton<String>(
+      childBuilder: (TextStyle? style) => Text(
+        translate('WOL settings'),
+        style: style,
+      ),
+      proc: () {
+        wolSettingsDialog(id);
+      },
+      padding: menuPadding,
+      dismissOnClicked: true,
+    );
+  }
+
   /// Only available on Windows.
   @protected
   MenuEntryBase<String> _createShortCutAction(String id) {
@@ -989,6 +1013,7 @@ class RecentPeerCard extends BasePeerCard {
     if (isWindows && peer.platform == kPeerPlatformWindows) {
       menuItems.add(_rdpAction(context, peer.id));
     }
+    _addWolActions(menuItems, peer.id);
     if (isWindows) {
       menuItems.add(_createShortCutAction(peer.id));
     }
@@ -1052,6 +1077,7 @@ class FavoritePeerCard extends BasePeerCard {
     if (isWindows && peer.platform == kPeerPlatformWindows) {
       menuItems.add(_rdpAction(context, peer.id));
     }
+    _addWolActions(menuItems, peer.id);
     if (isWindows) {
       menuItems.add(_createShortCutAction(peer.id));
     }
@@ -1115,6 +1141,7 @@ class DiscoveredPeerCard extends BasePeerCard {
       menuItems.add(_rdpAction(context, peer.id));
     }
     menuItems.add(_wolAction(peer.id));
+    menuItems.add(_wolSettingsAction(peer.id));
     if (isWindows) {
       menuItems.add(_createShortCutAction(peer.id));
     }
@@ -1171,6 +1198,7 @@ class AddressBookPeerCard extends BasePeerCard {
     if (isWindows && peer.platform == kPeerPlatformWindows) {
       menuItems.add(_rdpAction(context, peer.id));
     }
+    _addWolActions(menuItems, peer.id);
     if (isWindows) {
       menuItems.add(_createShortCutAction(peer.id));
     }
@@ -1328,6 +1356,7 @@ class MyGroupPeerCard extends BasePeerCard {
     if (isWindows && peer.platform == kPeerPlatformWindows) {
       menuItems.add(_rdpAction(context, peer.id));
     }
+    _addWolActions(menuItems, peer.id);
     if (isWindows) {
       menuItems.add(_createShortCutAction(peer.id));
     }

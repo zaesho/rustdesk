@@ -2247,6 +2247,73 @@ void renameDialog(
   });
 }
 
+void wolSettingsDialog(String id) async {
+  final macController = TextEditingController(
+      text: bind.mainGetPeerOptionSync(id: id, key: kOptionWolMac));
+  final targetController = TextEditingController(
+      text: bind.mainGetPeerOptionSync(id: id, key: kOptionWolTarget));
+  gFFI.dialogManager.show((setState, close, context) {
+    submit() async {
+      await bind.mainSetPeerOption(
+          id: id, key: kOptionWolMac, value: macController.text.trim());
+      await bind.mainSetPeerOption(
+          id: id, key: kOptionWolTarget, value: targetController.text.trim());
+      close();
+      showToast(translate('Successful'));
+    }
+
+    return CustomAlertDialog(
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.settings_power_rounded, color: MyTheme.accent),
+          Text(translate('WOL settings')).paddingOnly(left: 10),
+        ],
+      ),
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: macController,
+            autofocus: true,
+            decoration: InputDecoration(
+              labelText: translate('MAC address'),
+              hintText: '00:11:22:33:44:55',
+            ),
+          ).workaroundFreezeLinuxMint(),
+          TextField(
+            controller: targetController,
+            decoration: InputDecoration(
+              labelText: translate('WOL target address'),
+              hintText: '192.168.1.255',
+            ),
+          ).workaroundFreezeLinuxMint().marginOnly(top: 8),
+          Text(
+            translate('wol_target_tip'),
+            style:
+                TextStyle(fontSize: 12, color: Theme.of(context).hintColor),
+          ).marginOnly(top: 12),
+        ],
+      ),
+      actions: [
+        dialogButton(
+          "Cancel",
+          icon: Icon(Icons.close_rounded),
+          onPressed: close,
+          isOutline: true,
+        ),
+        dialogButton(
+          "OK",
+          icon: Icon(Icons.done_rounded),
+          onPressed: submit,
+        ),
+      ],
+      onSubmit: submit,
+      onCancel: close,
+    );
+  });
+}
+
 void changeBot({Function()? callback}) async {
   if (bind.mainHasValidBotSync()) {
     await bind.mainSetOption(key: "bot", value: "");

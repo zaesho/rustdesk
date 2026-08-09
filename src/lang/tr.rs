@@ -775,5 +775,9 @@ pub static ref T: std::collections::HashMap<&'static str, &'static str> =
         ("whitelist_cidr_tip", "CIDR gösterimi desteklenir, örneğin 192.168.1.0/24"),
         ("Continue", ""),
         ("Browser didn't open? Use the url below to sign in.", ""),
+        ("WOL settings", ""),
+        ("MAC address", ""),
+        ("WOL target address", ""),
+        ("wol_target_tip", ""),
     ].iter().cloned().collect();
 }

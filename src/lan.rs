@@ -83,7 +83,13 @@ pub async fn discover() -> ResultType<()> {
     Ok(())
 }
 
+pub const OPTION_WOL_MAC: &str = "wol-mac";
+pub const OPTION_WOL_TARGET: &str = "wol-target";
+
 pub fn send_wol(id: String) {
+    if send_routed_wol(&id) {
+        return;
+    }
     let interfaces = default_net::get_interfaces();
     for peer in &config::LanPeers::load().peers {
         if peer.id == id {
@@ -102,6 +108,40 @@ pub fn send_wol(id: String) {
             break;
         }
     }
+}
+
+// A magic packet only crosses subnets when addressed to a routable target, so
+// hosts reachable through a VPN subnet router need an explicitly configured one.
+fn send_routed_wol(id: &str) -> bool {
+    let options = config::PeerConfig::load(id).options;
+    let mac = match options.get(OPTION_WOL_MAC) {
+        Some(mac) => mac,
+        None => return false,
+    };
+    let target = match options.get(OPTION_WOL_TARGET) {
+        Some(target) => target,
+        None => return false,
+    };
+    let mac_addr = match mac.parse::<wol::MacAddr>() {
+        Ok(mac_addr) => mac_addr,
+        Err(..) => {
+            log::error!("Invalid wol mac address of {id}: {mac}");
+            return false;
+        }
+    };
+    let target_addr = match target.parse::<IpAddr>() {
+        Ok(target_addr) => target_addr,
+        Err(..) => {
+            log::error!("Invalid wol target address of {id}: {target}");
+            return false;
+        }
+    };
+    log::info!("Send wol to {mac_addr} via {target_addr}");
+    if let Err(err) = wol::send_wol(mac_addr, Some(target_addr), None) {
+        log::error!("Failed to send wol to {target_addr}: {err}");
+        return false;
+    }
+    true
 }
 
 #[inline]
