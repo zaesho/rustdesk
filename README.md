@@ -1,3 +1,17 @@
+# Gian Villarini's RustDesk fork
+
+This fork contains my routed Wake-on-LAN work for hosts reachable through a VPN subnet router, plus a focused macOS arm64 build workflow. RustDesk itself is the upstream team's project; the links below isolate my changes. The implementation commits credit `factory-droid[bot]` as a co-author.
+
+- [Feature implementation](https://github.com/zaesho/rustdesk/commit/0a5e7690434570e344a2b1cc2ef2e72175ac13e4): per-peer MAC and target settings, Rust packet dispatch, and Flutter controls across peer lists.
+- [macOS packaging follow-up](https://github.com/zaesho/rustdesk/commit/1b75dd10c4dde80af971a0a1b6802448e18cdb03): ad-hoc signing for a local build after the service helper is added to the app bundle.
+- [Changes relative to this fork's master branch](https://github.com/zaesho/rustdesk/compare/master...wol-routed-target).
+
+The Wake-on-LAN change sends to an explicitly configured IP target and lets the routing table select the interface. The existing local broadcast path remains the fallback. Reaching a sleeping host still depends on the destination network, router configuration, and host support; this feature is not a wake-delivery guarantee.
+
+The macOS workflow is intended for local development. Its ad-hoc signature and disabled library validation are not a notarized distribution setup. Build completion and end-to-end behavior should be checked independently; this README makes no upstream acceptance or production deployment claim.
+
+## Upstream RustDesk documentation
+
 <p align="center">
   <img src="res/logo-header.svg" alt="RustDesk - Your remote desktop"><br>
   <a href="#raw-steps-to-build">Build</a> •
